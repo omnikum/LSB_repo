@@ -16,6 +16,13 @@ def chars_to_bin(chars):
     return ''.join([bin(ord(c))[2:].zfill(8) for c in chars])
 
 
+def bin_to_chars(bin):
+    """
+    Возвращает двоичный код в текст
+    """
+    assert not len(bin) * 8 % CHUNK_LENGTH, 'Длина кодируемых данных должна быть кратна длине блока кодирования'
+    return ''.join([bin(chr(c))[2:].zfill(8) for c in bin])
+
 def chunk_iterator(text_bin, chunk_size=CHUNK_LENGTH):
     """
     Поблочный вывод бинарных данных
