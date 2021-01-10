@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-
+from scipy import stats
+from PIL import Image
 
 # PSNR PART
 def calculate_psnr(img1=None, img2=None):
@@ -9,7 +10,7 @@ def calculate_psnr(img1=None, img2=None):
     r_img1 = cv2.imread(img1)
     r_img2 = cv2.imread(img2)
     psnr = cv2.PSNR(r_img1, r_img2)
-    print("PSNR {1}-{2} is: ".format(img1, img2), psnr)
+    print("PSNR of pics is: ", psnr)
 
 
 # HISTOGRAMM PART
@@ -71,3 +72,27 @@ def create_bit_plane(image):
     # Display the images
     plt.imshow(final)
     plt.show()
+
+
+def chi_squared_test(src):
+    hist = calc_colors(src)
+    expected_freq, observed_freq = calc_freq(hist)
+    chis, probs = stats.chisquare(observed_freq, expected_freq)
+    print(chis, probs)
+
+
+def calc_colors(src):
+    img = Image.open(src)
+    hist = img.histogram()
+    hist = list(map(lambda x: 1 if x == 0 else x, hist))
+    return hist
+
+
+def calc_freq(histogram):
+    expected = []
+    observed = []
+    for k in range(0, len(histogram) // 2):
+        expected.append((histogram[2 * k] + histogram[2 * k + 1]) / 2)
+        observed.append(histogram[2 * k])
+    return expected, observed
+
