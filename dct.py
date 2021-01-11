@@ -66,13 +66,13 @@ def encode_dct(src, message, dest):
 
     for dct_block in dct_blocks:
         # find LSB in dc coeff and replace with message bit
-        dc = np.unpackbits(np.round(np.uint8(dct_block[7][7])))  # поменять на [7][7]
+        dc = np.unpackbits(np.round(np.uint8(dct_block[1][1])))  # поменять на [7][7]
 
         dc[7] = bit_mess[mess_index][letter_index]
 
         dc = np.float32(np.packbits(dc))
 
-        dct_block[7][7] = dc
+        dct_block[1][1] = dc
 
         letter_index = letter_index + 1
         if letter_index == 8:
@@ -129,7 +129,7 @@ def decode(src):
     res_mes = ''
     # message extracted from LSB of DC coeff
     for dct_block in dct_blocks:
-        if dct_block[7][7] % 2. == 0.:
+        if dct_block[1][1] % 2 == 0:
             buffer += '0'
         else:
             buffer += '1'
