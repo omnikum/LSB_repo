@@ -38,7 +38,7 @@ def encode_dct(src, message, dest):
     # get size of image in pixels
     row, col = img.shape[:2]
 
-    if ((col / 8) * (row / 8) < len(message)):
+    if (col / 8) * (row / 8) < len(message):
         print("Error: Message too large to encode in image")
         return
 
@@ -55,8 +55,7 @@ def encode_dct(src, message, dest):
     b_img = np.float32(b_img)
 
     # break into 8x8 blocks
-    img_blocks = [np.round(b_img[j:j + 8, i:i + 8]) for (j, i) in itertools.product(range(0, row, 8),
-                                                                                        range(0, col, 8))]
+    img_blocks = [np.round(b_img[j:j + 8, i:i + 8]) for (j, i) in itertools.product(range(0, row, 8), range(0, col, 8))]
 
     # Blocks are run through DCT function
     dct_blocks = [np.round(cv2.dct(img_block)) for img_block in img_blocks]
@@ -67,7 +66,7 @@ def encode_dct(src, message, dest):
 
     for dct_block in dct_blocks:
         # find LSB in dc coeff and replace with message bit
-        dc = np.unpackbits(np.uint8(dct_block[7][7]))  # поменять на [7][7]
+        dc = np.unpackbits(np.round(np.uint8(dct_block[7][7])))  # поменять на [7][7]
 
         dc[7] = bit_mess[mess_index][letter_index]
 
@@ -83,7 +82,7 @@ def encode_dct(src, message, dest):
                 break
 
     # blocks run through inverse DCT
-    bl_img_blocks = [cv2.idct(B) for B in dct_blocks]
+    bl_img_blocks = [(cv2.idct(B)) for B in dct_blocks]
 
     # puts the new image back together
     bl_img = []
@@ -98,10 +97,12 @@ def encode_dct(src, message, dest):
 
     bl_img = cv2.merge((bl_img, g_img, r_img))
     cv2.imwrite(dest, bl_img)
-    return bl_img
-
+    #return bl_img
+    print("Encoding done!")
+    decode_dct(dest)
 
 def decode_dct(src):
+    print("Decoding...")
     res = decode(src)
     print(res)
 
@@ -119,7 +120,7 @@ def decode(src):
     # print(b_img[0:8,0:8])
 
     # break into 8x8 blocks
-    img_blocks = [b_img[j:j + 8, i:i + 8] for (j, i) in itertools.product(range(0, row, 8),
+    img_blocks = [np.round(b_img[j:j + 8, i:i + 8]) for (j, i) in itertools.product(range(0, row, 8),
                                                                               range(0, col, 8))]
 
     dct_blocks = [np.round(cv2.dct(img_block)) for img_block in img_blocks]
@@ -128,13 +129,14 @@ def decode(src):
     res_mes = ''
     # message extracted from LSB of DC coeff
     for dct_block in dct_blocks:
-        dc = np.unpackbits(np.uint8(dct_block[7][7]))  # менять на последний элемент
-        buffer += str(int(dc[7]))
+        if dct_block[7][7] % 2. == 0.:
+            buffer += '0'
+        else:
+            buffer += '1'
         if len(buffer) == 8:
-            print(int(buffer, 2))
             if chr(int(buffer, 2)) != '*':
                 res_mes += chr(int(buffer, 2))
                 buffer = ''
             else:
                 print(res_mes)
-                return res_mes
+                #return res_mes
