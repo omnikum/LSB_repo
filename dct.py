@@ -34,7 +34,7 @@ def encode_dct(src, message, dest):
 
     message = message + '*'
     bit_mess = to_bits(message)
-
+    #print(bit_mess)
     # get size of image in pixels
     row, col = img.shape[:2]
 
@@ -65,10 +65,11 @@ def encode_dct(src, message, dest):
     letter_index = 0
 
     for dct_block in dct_blocks:
+
         # find LSB in dc coeff and replace with message bit
         dc = np.unpackbits(np.round(np.uint8(dct_block[1][1])))  # поменять на [7][7]
 
-        dc[7] = bit_mess[mess_index][letter_index]
+        dc[0] = bit_mess[mess_index][letter_index]
 
         dc = np.float32(np.packbits(dc))
 
@@ -127,16 +128,32 @@ def decode(src):
 
     buffer = ''
     res_mes = ''
-    # message extracted from LSB of DC coeff
     for dct_block in dct_blocks:
-        if dct_block[1][1] % 2 == 0:
-            buffer += '0'
-        else:
-            buffer += '1'
+
+        # find LSB in dc coeff and replace with message bit
+        dc = np.unpackbits(np.round(np.uint8(dct_block[1][1])))  # поменять на [7][7]
+
+        buffer += str(dc[0])
         if len(buffer) == 8:
+            #print(buffer)
             if chr(int(buffer, 2)) != '*':
                 res_mes += chr(int(buffer, 2))
                 buffer = ''
             else:
                 print(res_mes)
+                break
                 #return res_mes
+#    message extracted from LSB of DC coeff
+#    for dct_block in dct_blocks:
+#        if dct_block[1][1] % 2 == 0:
+#            buffer += '0'
+#        else:
+#            buffer += '1'
+#        if len(buffer) == 8:
+#            #print(buffer)
+#            if chr(int(buffer, 2)) != '*':
+#                res_mes += chr(int(buffer, 2))
+#                buffer = ''
+#            else:
+#                print(res_mes)
+#                #return res_mes
