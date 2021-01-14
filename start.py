@@ -1,5 +1,5 @@
 from lsb import encode_image, decode_image
-from analyze import calculate_psnr, create_hist, create_bit_plane, chi_squared_test
+from analyze import calculate_psnr, create_hist, create_bit_plane, chi_squared_test, calc_chi_square
 from dct import decode_dct, encode_dct
 
 if __name__ == "__main__":
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         print("Chi squared test")
         print("Input Source Path Of The Image")
         src1 = input()
-        chi_squared_test(src1)
+        calc_chi_square(src1)
 
     elif menu == '9':
         print("Input Source Image Path")

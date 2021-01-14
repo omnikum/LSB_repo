@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 from PIL import Image
+import pandas as pd
 
 # PSNR PART
 def calculate_psnr(img1=None, img2=None):
@@ -96,3 +97,48 @@ def calc_freq(histogram):
         observed.append(histogram[2 * k])
     return expected, observed
 
+def calc_chi_square(src):
+    img = Image.open(src)
+    colourPixels = img.convert("RGB")
+    colours_arr = np.array(colourPixels.getdata())
+
+    stego = colours_arr.ravel()
+
+    ln = len(stego) // 100
+    curr = 0
+    txt_chunk = 0
+    emb_per = 0
+
+    while curr < len(stego) - ln:
+
+        stego_chunk = stego[curr:(curr + ln)]
+        curr += ln
+
+        # применяю pandas чтобы достать таблицу частот
+        df = pd.DataFrame(data=stego_chunk, columns=['pixel'])
+        histogram = df.value_counts().reset_index()
+        histogram.columns = ['colour', 'freq']
+        histogram = histogram.sort_values(by='colour').reset_index(drop=True)
+
+        hist = histogram['freq'].tolist()
+
+        for i in range(0, 255):
+            if i not in histogram['colour'].tolist():
+                hist.insert(i, 1)  # защита от деления на 0
+
+        expected = []
+        observed = []
+
+        for i in range(0, len(hist) // 2):
+            expected.append(((hist[2 * i] + hist[2 * i + 1]) / 2))
+            observed.append(hist[2 * i])
+
+        prob = stats.chisquare(observed, expected)
+
+        if prob[1] > 0.5:
+            emb_per += 1
+
+        txt_chunk += 1
+
+    print("С пороговым значением вероятности 0.5, обнаружено встраивание в {}% изображения!".format(emb_per))
+    print()
