@@ -3,6 +3,21 @@ import cv2
 import numpy as np
 import itertools
 
+"""
+TODO:
+
+1. Оптимизация. Убрать округление (np.round) при считывании img_blocks и dct_blocks (в кодере и декодере)
+2. Декодинг по четности элемента. Встраивать бит сообщения не в нулевой бит элемента матрицы ДКП, а в последний (всего 
+8 бит, соответственно встраивать нужно в dc[7], декодер в конце программы, который закомменчен - можно использовать
+ для декодинга по четности)
+3.Увеличение размера сообщения. Встраивать бит сообщения не только в элемент [1][1] матрицы ДКП, а во все элементы 
+матрицы ДКП, кроме [0][0] (требует дополнительных экспериментов)
+
+Опционально:
+1. Гонять сообщение через код Хэмминга - увеличится длина сообщения, но меньше вероятность ошибки при пересчете ДКП
+"""
+
+
 
 def chunks(s_img_blocks, col_na_8):
     shag = int(col_na_8)
@@ -67,7 +82,7 @@ def encode_dct(src, message, dest):
     for dct_block in dct_blocks:
 
         # find LSB in dc coeff and replace with message bit
-        dc = np.unpackbits(np.round(np.uint8(dct_block[1][1])))  # поменять на [7][7]
+        dc = np.unpackbits(np.round(np.uint8(dct_block[1][1])))
 
         dc[0] = bit_mess[mess_index][letter_index]
 
@@ -98,9 +113,9 @@ def encode_dct(src, message, dest):
 
     bl_img = cv2.merge((bl_img, g_img, r_img))
     cv2.imwrite(dest, bl_img)
-    #return bl_img
+
     print("Encoding done!")
-    decode_dct(dest)
+    return bl_img
 
 def decode_dct(src):
     print("Decoding...")
